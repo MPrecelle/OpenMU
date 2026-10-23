@@ -292,6 +292,7 @@ internal sealed class Program : IDisposable
         _ = GameLogic.Rand.NextInt(1, 2);
         _ = DataInitialization.Id;
         _ = OpenMU.GameServer.ClientVersionResolver.DefaultVersion;
+        _ = Torvik.ContentStages.ContentStagesPlugIn.TypeId; // Torvik MU: our plugins
 
         var addAdminPanel = this.IsAdminPanelEnabled(args);
         await new ConfigFileDatabaseConnectionStringProvider().InitializeAsync(default).ConfigureAwait(false);
