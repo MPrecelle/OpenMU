@@ -156,6 +156,47 @@ internal class PlayerContext : CachingEntityFrameworkContext, IPlayerContext
     }
 
     /// <inheritdoc />
+    public async ValueTask<IReadOnlyList<CharacterRankingEntry>> GetCharacterRankingAsync(CharacterRankingQuery query, CancellationToken cancellationToken = default)
+    {
+        var levelId = query.LevelAttribute.Id;
+        var masterLevelId = query.MasterLevelAttribute.Id;
+        var resetsId = query.ResetsAttribute.Id;
+        var classId = query.CharacterClassId;
+
+        using var l = await this.LockAsync(cancellationToken).ConfigureAwait(false);
+        using (this.RepositoryProvider.ContextStack.UseContext(this))
+        {
+            var ranking = await this.Context.Set<Account>().AsNoTracking()
+                .Where(a => !a.IsTemplate && !a.IsBot)
+                .SelectMany(a => a.RawCharacters)
+                .Where(c => c.CharacterStatus == DataModel.Entities.CharacterStatus.Normal)
+                .Where(c => classId == null || c.CharacterClassId == classId)
+                .Select(c => new
+                {
+                    c.Name,
+                    c.CharacterClassId,
+                    Level = c.RawAttributes.Where(a => a.DefinitionId == levelId).Select(a => a.Value).FirstOrDefault(),
+                    MasterLevel = c.RawAttributes.Where(a => a.DefinitionId == masterLevelId).Select(a => a.Value).FirstOrDefault(),
+                    Resets = c.RawAttributes.Where(a => a.DefinitionId == resetsId).Select(a => a.Value).FirstOrDefault(),
+                    c.MasterExperience,
+                    c.Experience,
+                })
+                .OrderByDescending(c => c.Resets)
+                .ThenByDescending(c => c.MasterLevel)
+                .ThenByDescending(c => c.Level)
+                .ThenByDescending(c => c.MasterExperience)
+                .ThenByDescending(c => c.Experience)
+                .ThenBy(c => c.Name)
+                .Take(query.Count)
+                .ToListAsync(cancellationToken).ConfigureAwait(false);
+
+            return ranking
+                .Select(c => new CharacterRankingEntry(c.Name, c.CharacterClassId, (int)c.Level, (int)c.MasterLevel, (int)c.Resets))
+                .ToList();
+        }
+    }
+
+    /// <inheritdoc />
     public async ValueTask<DataModel.Entities.Account?> GetAccountByCharacterNameAsync(string characterName, CancellationToken cancellationToken = default)
     {
         using var l = await this.LockAsync(cancellationToken).ConfigureAwait(false);

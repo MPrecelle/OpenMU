@@ -70,6 +70,38 @@ public class PlayerInMemoryContext : InMemoryContext, IPlayerContext
     }
 
     /// <inheritdoc/>
+    public async ValueTask<IReadOnlyList<CharacterRankingEntry>> GetCharacterRankingAsync(CharacterRankingQuery query, CancellationToken cancellationToken = default)
+    {
+        var allAccounts = await this.Provider.GetRepository<Account>().GetAllAsync(cancellationToken).ConfigureAwait(false);
+
+        static int GetValue(MUnique.OpenMU.DataModel.Entities.Character character, MUnique.OpenMU.AttributeSystem.AttributeDefinition attribute)
+        {
+            return (int)(character.Attributes.FirstOrDefault(a => a.Definition?.Id == attribute.Id)?.Value ?? 0);
+        }
+
+        return allAccounts
+            .Where(a => !a.IsTemplate && !a.IsBot)
+            .SelectMany(a => a.Characters)
+            .Where(c => c.CharacterStatus == MUnique.OpenMU.DataModel.Entities.CharacterStatus.Normal)
+            .Where(c => query.CharacterClassId is null || c.CharacterClass?.GetId() == query.CharacterClassId)
+            .Select(c => (Character: c, Entry: new CharacterRankingEntry(
+                c.Name,
+                c.CharacterClass?.GetId(),
+                GetValue(c, query.LevelAttribute),
+                GetValue(c, query.MasterLevelAttribute),
+                GetValue(c, query.ResetsAttribute))))
+            .OrderByDescending(c => c.Entry.Resets)
+            .ThenByDescending(c => c.Entry.MasterLevel)
+            .ThenByDescending(c => c.Entry.Level)
+            .ThenByDescending(c => c.Character.MasterExperience)
+            .ThenByDescending(c => c.Character.Experience)
+            .ThenBy(c => c.Entry.Name)
+            .Take(query.Count)
+            .Select(c => c.Entry)
+            .ToList();
+    }
+
+    /// <inheritdoc/>
     public async ValueTask<IEnumerable<MUnique.OpenMU.DataModel.Entities.Account>> SearchAccountsAsync(string searchTerm, int skip, int count, CancellationToken cancellationToken = default)
     {
         var allAccounts = await this.Provider.GetRepository<Account>().GetAllAsync(cancellationToken).ConfigureAwait(false);
