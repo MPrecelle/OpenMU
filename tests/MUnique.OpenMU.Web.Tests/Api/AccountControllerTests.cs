@@ -1,4 +1,4 @@
-// <copyright file="AccountControllerTests.cs" company="MUnique">
+﻿// <copyright file="AccountControllerTests.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -17,7 +17,7 @@ using MUnique.OpenMU.Persistence.InMemory;
 using MUnique.OpenMU.Web.AdminPanel.API;
 
 /// <summary>
-/// Tests for the <see cref="AccountController"/>, which registers accounts through the public API.
+/// Tests for the <see cref="AccountController"/>, which registers accounts and verifies their credentials through the public API.
 /// </summary>
 [TestFixture]
 public class AccountControllerTests
@@ -121,15 +121,92 @@ public class AccountControllerTests
         Assert.That(GetInvalidMembers(CreateRegistration(loginName, password, eMail)), Is.EqualTo(new[] { invalidMember }));
     }
 
+    /// <summary>
+    /// Valid credentials are answered with the login name and state of the account.
+    /// </summary>
+    [Test]
+    public async Task VerifyAcceptsValidCredentialsAsync()
+    {
+        await this._controller.RegisterAsync(CreateRegistration("newbie", "secret1", null), CancellationToken.None).ConfigureAwait(false);
+
+        var result = await this._controller.VerifyAsync(CreateCredentials("newbie", "secret1"), CancellationToken.None).ConfigureAwait(false);
+
+        Assert.That(result.Value, Is.EqualTo(new AccountVerification("newbie", AccountState.Normal)));
+    }
+
+    /// <summary>
+    /// The state of a banned account is returned, so that the caller can tell why the login failed.
+    /// </summary>
+    [Test]
+    public async Task VerifyReturnsStateOfBannedAccountAsync()
+    {
+        using (var context = this._persistenceContextProvider.CreateNewPlayerContext(new GameConfiguration()))
+        {
+            var account = context.CreateNew<Account>();
+            account.LoginName = "banned";
+            account.PasswordHash = BCrypt.Net.BCrypt.HashPassword("secret1");
+            account.State = AccountState.Banned;
+            await context.SaveChangesAsync().ConfigureAwait(false);
+        }
+
+        var result = await this._controller.VerifyAsync(CreateCredentials("banned", "secret1"), CancellationToken.None).ConfigureAwait(false);
+
+        Assert.That(result.Value?.State, Is.EqualTo(AccountState.Banned));
+    }
+
+    /// <summary>
+    /// The state is serialized by its name, so that callers don't depend on the numeric values.
+    /// </summary>
+    [Test]
+    public void VerificationSerializesStateByName()
+    {
+        var json = System.Text.Json.JsonSerializer.Serialize(new AccountVerification("banned", AccountState.Banned));
+
+        Assert.That(json, Is.EqualTo("""{"LoginName":"banned","State":"Banned"}"""));
+    }
+
+    /// <summary>
+    /// A wrong password and an unknown login name are both answered with not found.
+    /// </summary>
+    /// <param name="loginName">The login name.</param>
+    /// <param name="password">The password.</param>
+    [TestCase("newbie", "wrong12")]
+    [TestCase("nobody", "secret1")]
+    public async Task VerifyRejectsInvalidCredentialsAsync(string loginName, string password)
+    {
+        await this._controller.RegisterAsync(CreateRegistration("newbie", "secret1", null), CancellationToken.None).ConfigureAwait(false);
+
+        var result = await this._controller.VerifyAsync(CreateCredentials(loginName, password), CancellationToken.None).ConfigureAwait(false);
+
+        Assert.That(result.Result, Is.InstanceOf<NotFoundResult>());
+    }
+
+    /// <summary>
+    /// Credentials longer than what the game client can send are invalid, but shorter ones are not.
+    /// </summary>
+    [Test]
+    public void CredentialsAreLimitedToTheMaximumLengths()
+    {
+        Assert.That(GetInvalidMembers(CreateCredentials("ab", "x")), Is.Empty);
+        Assert.That(GetInvalidMembers(CreateCredentials("abcdefghijk", "secret1")), Is.EqualTo(new[] { nameof(AccountCredentials.LoginName) }));
+        Assert.That(GetInvalidMembers(CreateCredentials("newbie", "123456789012345678901")), Is.EqualTo(new[] { nameof(AccountCredentials.Password) }));
+        Assert.That(GetInvalidMembers(CreateCredentials("", "")), Is.EquivalentTo(new[] { nameof(AccountCredentials.LoginName), nameof(AccountCredentials.Password) }));
+    }
+
+    private static AccountCredentials CreateCredentials(string loginName, string password)
+    {
+        return new AccountCredentials { LoginName = loginName, Password = password };
+    }
+
     private static AccountRegistration CreateRegistration(string loginName, string password, string? eMail)
     {
         return new AccountRegistration { LoginName = loginName, Password = password, EMail = eMail };
     }
 
-    private static IEnumerable<string> GetInvalidMembers(AccountRegistration registration)
+    private static IEnumerable<string> GetInvalidMembers(object instance)
     {
         var results = new List<ValidationResult>();
-        Validator.TryValidateObject(registration, new ValidationContext(registration), results, validateAllProperties: true);
+        Validator.TryValidateObject(instance, new ValidationContext(instance), results, validateAllProperties: true);
         return results.SelectMany(r => r.MemberNames).Distinct();
     }
 

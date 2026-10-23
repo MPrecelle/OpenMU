@@ -100,6 +100,17 @@ public interface IPlayerContext : IContext
     ValueTask<AccountStatistics> GetAccountStatisticsAsync(DateTime registeredSince, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets the best characters, ordered by resets, master level, level and experience.
+    /// </summary>
+    /// <remarks>
+    /// Characters of template and bot accounts, banned characters and game masters are not included.
+    /// </remarks>
+    /// <param name="query">Defines which characters the ranking contains.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The characters of the ranking, best first.</returns>
+    ValueTask<IReadOnlyList<CharacterRankingEntry>> GetCharacterRankingAsync(CharacterRankingQuery query, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets the account by character name.
     /// </summary>
     /// <param name="characterName">The character name.</param>
