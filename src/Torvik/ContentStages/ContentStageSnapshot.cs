@@ -31,6 +31,11 @@ public class ContentStageSnapshot
     public Dictionary<string, MiniGameState> MiniGames { get; set; } = new();
 
     /// <summary>
+    /// Gets or sets the original quantities of the spawns of NPCs, by spawn id.
+    /// </summary>
+    public Dictionary<Guid, short> Spawns { get; set; } = new();
+
+    /// <summary>
     /// Gets or sets the original activation state of the plugins, by plugin type id.
     /// </summary>
     public Dictionary<Guid, bool> PlugIns { get; set; } = new();

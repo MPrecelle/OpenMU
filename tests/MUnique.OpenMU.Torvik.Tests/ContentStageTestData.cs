@@ -43,6 +43,7 @@ internal static class ContentStageTestData
         values.AddRange(configuration.CharacterClasses.Select(c => $"class {c.Number} {c.CanGetCreated}"));
         values.AddRange(configuration.Monsters.SelectMany(m => m.Quests.Select(q => $"quest {m.Number}:{q.Group}:{q.Number}:{q.QualifiedCharacter?.Number} {q.MinimumCharacterLevel}")));
         values.AddRange(configuration.MiniGameDefinitions.Select(g => $"minigame {g.Type}:{g.GameLevel} {g.MinimumCharacterLevel} {g.MinimumSpecialCharacterLevel}"));
+        values.AddRange(configuration.Maps.SelectMany(m => m.MonsterSpawns.Select(a => $"spawn {m.Number} {a.MonsterDefinition?.Number} {a.X1}:{a.Y1} {a.Quantity}")));
         values.AddRange(configuration.PlugInConfigurations.Select(p => $"plugin {p.TypeId} {p.IsActive}"));
         values.Sort(StringComparer.Ordinal);
         return values;

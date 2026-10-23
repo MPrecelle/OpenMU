@@ -49,6 +49,16 @@ public class ContentCatalogTest
     }
 
     /// <summary>
+    /// Tests that every NPC of the catalog gets spawned somewhere, so that locking it has an effect.
+    /// </summary>
+    [Test]
+    public void CatalogNpcsAreSpawned()
+    {
+        var spawnedNumbers = this._configuration.Maps.SelectMany(m => m.MonsterSpawns).Select(a => a.MonsterDefinition?.Number).OfType<short>();
+        Assert.That(ContentCatalog.Npcs.Keys, Is.SubsetOf(spawnedNumbers));
+    }
+
+    /// <summary>
     /// Tests that every item range of the catalog contains at least one item.
     /// </summary>
     [Test]
