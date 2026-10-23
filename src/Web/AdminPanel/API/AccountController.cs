@@ -1,4 +1,4 @@
-// <copyright file="AccountController.cs" company="MUnique">
+﻿// <copyright file="AccountController.cs" company="MUnique">
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 // </copyright>
 
@@ -15,11 +15,11 @@ using MUnique.OpenMU.Persistence;
 using MUnique.OpenMU.Web.AdminPanel.Auth;
 
 /// <summary>
-/// API controller which creates accounts, e.g. for the registration form of a website.
+/// API controller which creates accounts and verifies their credentials, e.g. for the registration and login forms of a website.
 /// </summary>
 /// <remarks>
-/// Creating an account changes data, so it needs the operator role, like editing an account in
-/// the admin panel does. The caller is meant to be a server side application, which keeps the API
+/// Creating an account changes data and verifying credentials allows to guess passwords, so both
+/// need the operator role, like editing an account in the admin panel does. The caller is meant to be a server side application, which keeps the API
 /// key to itself and protects its form against abuse (a captcha, a rate limit per visitor): this
 /// server only sees that application, not the visitors behind it.
 /// </remarks>
@@ -95,6 +95,33 @@ public class AccountController : ControllerBase
 
         this._logger.LogInformation("Account {LoginName} was registered by API client {Client}.", account.LoginName, this.User.Identity?.Name);
         return this.StatusCode(StatusCodes.Status201Created);
+    }
+
+    /// <summary>
+    /// Verifies the login name and password of an account, e.g. for the login form of a website.
+    /// </summary>
+    /// <param name="credentials">The login name and password.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>
+    /// <c>200</c> with the state of the account when the credentials are valid, <c>400</c> when
+    /// they are malformed, and <c>404</c> when there is no account with these credentials.
+    /// </returns>
+    /// <remarks>
+    /// The state is returned instead of rejecting banned accounts here, so that the caller can tell
+    /// the visitor why the login failed. Like for the registration, the caller has to protect its
+    /// form against guessing passwords (a rate limit per visitor).
+    /// </remarks>
+    [HttpPost("verify")]
+    public async Task<ActionResult<AccountVerification>> VerifyAsync([FromBody] AccountCredentials credentials, CancellationToken cancellationToken)
+    {
+        var gameConfiguration = await this._gameConfigurationSource.GetOwnerAsync(Guid.Empty, cancellationToken).ConfigureAwait(false);
+        using var context = this._persistenceContextProvider.CreateNewPlayerContext(gameConfiguration);
+        if (await context.AuthenticateAsync(credentials.LoginName, credentials.Password, cancellationToken).ConfigureAwait(false) is not { } state)
+        {
+            return this.NotFound();
+        }
+
+        return new AccountVerification(credentials.LoginName, state);
     }
 
     private async ValueTask<bool> IsRegisteredAsync(string loginName, GameConfiguration gameConfiguration, CancellationToken cancellationToken)
