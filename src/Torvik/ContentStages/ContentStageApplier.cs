@@ -61,6 +61,7 @@ public sealed class ContentStageApplier
         ApplyToCharacterClasses(gameConfiguration, stage, snapshot);
         ApplyToQuests(gameConfiguration, stage, snapshot);
         ApplyToMiniGames(gameConfiguration, stage, snapshot);
+        ApplyToSpawns(gameConfiguration, stage, snapshot);
         ApplyToPlugIns(gameConfiguration, stage, snapshot);
 
         configuration.CurrentStage = stage;
@@ -166,6 +167,29 @@ public sealed class ContentStageApplier
             {
                 miniGame.MinimumCharacterLevel = original.MinimumCharacterLevel;
                 miniGame.MinimumSpecialCharacterLevel = original.MinimumSpecialCharacterLevel;
+            }
+        }
+    }
+
+    private static void ApplyToSpawns(GameConfiguration gameConfiguration, ContentStage stage, ContentStageSnapshot snapshot)
+    {
+        foreach (var spawn in gameConfiguration.Maps.SelectMany(m => m.MonsterSpawns))
+        {
+            var spawnStage = spawn.MonsterDefinition is { } monster ? ContentCatalog.GetStage(monster) : ContentStage.Classic;
+            if (spawnStage == ContentStage.Classic)
+            {
+                continue;
+            }
+
+            var key = spawn.GetId();
+            if (IsLocked(spawnStage, stage))
+            {
+                snapshot.Spawns.TryAdd(key, spawn.Quantity);
+                spawn.Quantity = 0;
+            }
+            else if (snapshot.Spawns.Remove(key, out var original))
+            {
+                spawn.Quantity = original;
             }
         }
     }

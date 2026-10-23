@@ -58,6 +58,23 @@ public static class ContentCatalog
     };
 
     /// <summary>
+    /// Gets the NPCs by their monster number. Their spawns on the maps of unlocked stages get removed while they're locked.
+    /// </summary>
+    public static IReadOnlyDictionary<short, ContentStage> Npcs { get; } = new Dictionary<short, ContentStage>
+    {
+        [452] = ContentStage.Season4, // Seed Master
+        [453] = ContentStage.Season4, // Seed Researcher
+        [492] = ContentStage.Season4, // Moss The Merchant
+        [522] = ContentStage.Season5, // Adviser Jerinteu (Imperial Guardian)
+        [540] = ContentStage.Season5, // Lugard (Doppelganger)
+        [543] = ContentStage.Season5, // Gens Duprian
+        [544] = ContentStage.Season5, // Gens Vanert
+        [547] = ContentStage.Season5, // Market Union Member Julia (Loren Market)
+        [566] = ContentStage.Season6, // Mercenary Guild Felicia
+        [568] = ContentStage.Season6, // Wandering Merchant Zyro
+    };
+
+    /// <summary>
     /// Gets the quests of the legacy quest group (0), by their number.
     /// </summary>
     public static IReadOnlyDictionary<short, ContentStage> LegacyQuests { get; } = new Dictionary<short, ContentStage>
@@ -155,11 +172,19 @@ public static class ContentCatalog
 
     /// <summary>
     /// Gets the stage which unlocks the quest.
+    /// The quests of the other groups belong to the quest system of the Elf Soldier, which came after the classic era.
     /// </summary>
     /// <param name="quest">The quest definition.</param>
     /// <returns>The stage which unlocks the quest.</returns>
     public static ContentStage GetStage(DataModel.Configuration.Quests.QuestDefinition quest)
-        => quest.Group == 0 ? LegacyQuests.GetValueOrDefault(quest.Number) : ContentStage.Classic;
+        => quest.Group == 0 ? LegacyQuests.GetValueOrDefault(quest.Number) : ContentStage.Season5;
+
+    /// <summary>
+    /// Gets the stage which unlocks the spawns of the monster or NPC.
+    /// </summary>
+    /// <param name="monster">The monster definition.</param>
+    /// <returns>The stage which unlocks the spawns.</returns>
+    public static ContentStage GetStage(MonsterDefinition monster) => Npcs.GetValueOrDefault(monster.Number);
 
     /// <summary>
     /// Creates the ranges of the armor pieces (groups 7 to 11: helm, armor, pants, gloves and boots) of the sets.
