@@ -390,6 +390,7 @@ internal sealed class Program : IDisposable
             .AddHostedService<GameServerContainer>()
             .AddHostedService(provider => provider.GetService<GameServerContainer>()!)
             .AddHostedService(provider => provider.GetService<ConnectServerContainer>()!)
+            .AddHostedService<Torvik.ContentStages.ContentReleaseScheduler>() // Torvik MU: releases the scheduled content, after the servers started
             .AddNetworkObservation()
             .AddControllers().AddApplicationPart(typeof(ServerController).Assembly);
 

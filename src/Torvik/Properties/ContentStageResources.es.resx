@@ -27,4 +27,10 @@
   <data name="DropLogPlugIn_Description" xml:space="preserve">
     <value>Registra en el log los ítems que tiran los monstruos y los drops que bloquean los lanzamientos de contenido, para verificar los bloqueos en el juego.</value>
   </data>
+  <data name="ReleaseCountdown" xml:space="preserve">
+    <value>Lanzamiento de {0} en {1} minutos. Ahí se reinicia el servidor.</value>
+  </data>
+  <data name="ReleaseCountdownOneMinute" xml:space="preserve">
+    <value>Lanzamiento de {0} en 1 minuto. Ahí se reinicia el servidor.</value>
+  </data>
 </root>
