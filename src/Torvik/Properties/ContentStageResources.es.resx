@@ -21,4 +21,10 @@
   <data name="MapLocked" xml:space="preserve">
     <value>Este mapa todavía no está disponible. Llega con una próxima temporada.</value>
   </data>
+  <data name="DropLogPlugIn_Name" xml:space="preserve">
+    <value>Torvik: log de drops</value>
+  </data>
+  <data name="DropLogPlugIn_Description" xml:space="preserve">
+    <value>Registra en el log los ítems que tiran los monstruos y los drops que bloquean las etapas de contenido, para verificar los bloqueos en el juego.</value>
+  </data>
 </root>

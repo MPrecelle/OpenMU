@@ -61,6 +61,24 @@ namespace MUnique.OpenMU.Torvik.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Logs the items which killed monsters drop and the drops blocked by the content stages, to verify the locks in the game..
+        /// </summary>
+        public static string DropLogPlugIn_Description {
+            get {
+                return ResourceManager.GetString("DropLogPlugIn_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Torvik: drop log.
+        /// </summary>
+        public static string DropLogPlugIn_Name {
+            get {
+                return ResourceManager.GetString("DropLogPlugIn_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This map isn&apos;t available yet. It arrives with a coming season..
         /// </summary>
         public static string MapLocked {
