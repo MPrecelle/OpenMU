@@ -14,7 +14,7 @@ using MUnique.OpenMU.Pathfinding;
 using MUnique.OpenMU.Torvik.ContentStages;
 
 /// <summary>
-/// Tests the log entries of the drops, which are used to verify the content stages in the game.
+/// Tests the log entries of the drops, which are used to verify the locks of the content releases in the game.
 /// </summary>
 [TestFixture]
 public class DropLogPlugInTest
@@ -45,12 +45,12 @@ public class DropLogPlugInTest
     {
         var logger = CreateLoggerMock(out var loggerFactory);
         var (killer, monster) = await ContentStagesPlugInTest.CreateKillerAndMonsterAsync(loggerFactory).ConfigureAwait(false);
-        var plugIn = new ContentStagesPlugIn { Configuration = new ContentStageConfiguration { CurrentStage = ContentStage.Classic } };
+        var plugIn = new ContentStagesPlugIn { Configuration = ContentStageTestData.CreateConfiguration() };
         var item = new Item { Definition = new ItemDefinition { Name = "Seed", Group = 12, Number = 60 } };
 
         plugIn.ItemDropping(monster, killer, item, new CancelEventArgs());
 
-        VerifyLogged(logger, "Drop blocked by the content stage Classic: Seed (12:60) from Giant");
+        VerifyLogged(logger, "Drop blocked by the release sistema-de-sockets: Seed (12:60) from Giant");
     }
 
     private static Mock<ILogger> CreateLoggerMock(out ILoggerFactory loggerFactory)

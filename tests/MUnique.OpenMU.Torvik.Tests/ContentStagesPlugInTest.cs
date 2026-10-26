@@ -40,7 +40,7 @@ public class ContentStagesPlugInTest
     public async Task<bool> LockedItemsDontDropAsync(byte group, short number)
     {
         var (killer, monster) = await CreateKillerAndMonsterAsync().ConfigureAwait(false);
-        var plugIn = new ContentStagesPlugIn { Configuration = new ContentStageConfiguration { CurrentStage = ContentStage.Classic } };
+        var plugIn = new ContentStagesPlugIn { Configuration = ContentStageTestData.CreateConfiguration() };
         var item = new Item { Definition = new ItemDefinition { Group = group, Number = number } };
         var eventArgs = new CancelEventArgs();
 
@@ -74,7 +74,7 @@ public class ContentStagesPlugInTest
     public async Task LockedMapCantBeEnteredAsync()
     {
         var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
-        var plugIn = new ContentStagesPlugIn { Configuration = new ContentStageConfiguration { CurrentStage = ContentStage.Season3 } };
+        var plugIn = new ContentStagesPlugIn { Configuration = ContentStageTestData.CreateConfiguration("tercera-evolucion", "swamp-of-calmness") };
         var eventArgs = new CancelEventArgs();
 
         await plugIn.WarpGateEnteringAsync(player, new ExitGate { Map = new GameMapDefinition { Number = 63 } }, eventArgs).ConfigureAwait(false);
@@ -93,7 +93,7 @@ public class ContentStagesPlugInTest
     public async Task UnlockedMapCanBeEnteredAsync(short mapNumber)
     {
         var player = await PlayerTestHelper.CreatePlayerAsync().ConfigureAwait(false);
-        var plugIn = new ContentStagesPlugIn { Configuration = new ContentStageConfiguration { CurrentStage = ContentStage.Season3 } };
+        var plugIn = new ContentStagesPlugIn { Configuration = ContentStageTestData.CreateConfiguration("tercera-evolucion", "swamp-of-calmness") };
         var eventArgs = new CancelEventArgs();
 
         await plugIn.WarpGateEnteringAsync(player, new ExitGate { Map = new GameMapDefinition { Number = mapNumber } }, eventArgs).ConfigureAwait(false);

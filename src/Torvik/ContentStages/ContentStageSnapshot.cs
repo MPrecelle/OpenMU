@@ -4,6 +4,8 @@
 
 namespace MUnique.OpenMU.Torvik.ContentStages;
 
+using System.Text.Json.Serialization;
+
 /// <summary>
 /// The original values of the configuration data which the <see cref="ContentStageApplier"/> changes to lock content.
 /// They are restored when the content gets unlocked again.
@@ -39,6 +41,17 @@ public class ContentStageSnapshot
     /// Gets or sets the original activation state of the plugins, by plugin type id.
     /// </summary>
     public Dictionary<Guid, bool> PlugIns { get; set; } = new();
+
+    /// <summary>
+    /// Gets a value indicating whether no original value is kept, because nothing is locked.
+    /// </summary>
+    [JsonIgnore]
+    public bool IsEmpty => this.Items.Count == 0
+        && this.CharacterClasses.Count == 0
+        && this.Quests.Count == 0
+        && this.MiniGames.Count == 0
+        && this.Spawns.Count == 0
+        && this.PlugIns.Count == 0;
 
     /// <summary>
     /// The original values of an item definition.

@@ -15,7 +15,7 @@ using MUnique.OpenMU.PlugIns;
 using MUnique.OpenMU.Torvik.Properties;
 
 /// <summary>
-/// Locks the content of the stages after the <see cref="ContentStageConfiguration.CurrentStage"/> while the game runs:
+/// Locks the content of the <see cref="ContentStageConfiguration.Releases"/> which aren't released yet while the game runs:
 /// the maps can't be entered and the items don't drop from monsters.
 /// The configuration data is changed by the <see cref="ContentStageApplier"/>.
 /// </summary>
@@ -26,20 +26,30 @@ public sealed class ContentStagesPlugIn : IFeaturePlugIn, IWarpGateEnteringPlugI
 {
     private const string TypeIdString = "9FA6C153-9399-4C59-8896-79CE758AD270";
 
+    private ContentStageConfiguration? _configuration;
+
+    private ContentLocks _locks = ContentLocks.None;
+
     /// <summary>
     /// Gets the type id of this plugin.
     /// </summary>
     public static Guid TypeId { get; } = new(TypeIdString);
 
     /// <inheritdoc />
-    public ContentStageConfiguration? Configuration { get; set; }
-
-    private ContentStage CurrentStage => this.Configuration?.CurrentStage ?? ContentStage.Season6;
+    public ContentStageConfiguration? Configuration
+    {
+        get => this._configuration;
+        set
+        {
+            this._configuration = value;
+            this._locks = value?.CreateLocks() ?? ContentLocks.None;
+        }
+    }
 
     /// <inheritdoc />
     public async ValueTask WarpGateEnteringAsync(Player player, ExitGate targetGate, CancelEventArgs eventArgs)
     {
-        if (targetGate.Map is { } map && ContentCatalog.GetStage(map) > this.CurrentStage)
+        if (targetGate.Map is { } map && this._locks.GetRelease(map) is not null)
         {
             eventArgs.Cancel = true;
             var message = ContentStageResources.ResourceManager.GetString(nameof(ContentStageResources.MapLocked), player.Culture) ?? string.Empty;
@@ -51,12 +61,12 @@ public sealed class ContentStagesPlugIn : IFeaturePlugIn, IWarpGateEnteringPlugI
     public void ItemDropping(AttackableNpcBase monster, Player killer, Item item, CancelEventArgs eventArgs)
     {
         // Covers the drop groups with explicit items, which don't check ItemDefinition.DropsFromMonsters.
-        if (item.Definition is { } definition && ContentCatalog.GetStage(definition) > this.CurrentStage)
+        if (item.Definition is { } definition && this._locks.GetRelease(definition) is { } release)
         {
             eventArgs.Cancel = true;
             killer.Logger.LogInformation(
-                DropLogPlugIn.LogPrefix + " blocked by the content stage {Stage}: {Item} ({Group}:{Number}) from {Monster}, killed by {Player}",
-                this.CurrentStage,
+                DropLogPlugIn.LogPrefix + " blocked by the release {Release}: {Item} ({Group}:{Number}) from {Monster}, killed by {Player}",
+                release.Id,
                 definition.GetNameForLevel(item.Level),
                 definition.Group,
                 definition.Number,
