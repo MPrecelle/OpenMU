@@ -32,6 +32,22 @@ internal static class ContentStageTestData
     }
 
     /// <summary>
+    /// Creates a configuration with the default releases.
+    /// </summary>
+    /// <param name="releasedIds">The ids of the releases which are released.</param>
+    /// <returns>The configuration.</returns>
+    public static ContentStageConfiguration CreateConfiguration(params string[] releasedIds)
+    {
+        var configuration = new ContentStageConfiguration { Releases = DefaultReleases.Create() };
+        foreach (var id in releasedIds)
+        {
+            configuration.FindRelease(id)!.ReleasedAt = new DateTime(2026, 10, 26, 0, 0, 0, DateTimeKind.Utc);
+        }
+
+        return configuration;
+    }
+
+    /// <summary>
     /// Describes all values which the <see cref="ContentStageApplier"/> may change, to compare them.
     /// </summary>
     /// <param name="configuration">The game configuration.</param>

@@ -4,22 +4,63 @@
 
 namespace MUnique.OpenMU.Torvik.ContentStages;
 
+using System.Text.Json.Serialization;
+
 /// <summary>
-/// The configuration of the <see cref="ContentStagesPlugIn"/>.
+/// The configuration of the <see cref="ContentStagesPlugIn"/>: the releases of content and the original values of the locked content.
 /// </summary>
-public class ContentStageConfiguration
+public class ContentStageConfiguration : IJsonOnDeserialized
 {
     /// <summary>
-    /// Gets or sets the current stage. Content of later stages is locked.
+    /// Gets or sets the releases. The content of the releases which aren't released yet is locked.
     /// </summary>
     /// <remarks>
-    /// Change it through the <see cref="ContentStageApplier"/>, which also changes the configuration data accordingly.
+    /// Change them through the <see cref="ContentReleaseService"/>, which also changes the configuration data accordingly.
     /// </remarks>
-    public ContentStage CurrentStage { get; set; } = ContentStage.Season6;
+    public List<ContentRelease> Releases { get; set; } = new();
 
     /// <summary>
     /// Gets or sets the original values of the configuration data which is changed when content gets locked.
     /// It's <c>null</c> when nothing is locked.
     /// </summary>
     public ContentStageSnapshot? Snapshot { get; set; }
+
+    /// <summary>
+    /// Gets or sets the stage of a configuration which was stored before the releases existed.
+    /// It's only read, and replaced by the <see cref="DefaultReleases"/> when the configuration is loaded.
+    /// </summary>
+    [JsonPropertyName("CurrentStage")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public ContentStage? LegacyStage { get; set; }
+
+    /// <summary>
+    /// Creates the locks of the content of the releases which aren't released yet.
+    /// </summary>
+    /// <returns>The locks.</returns>
+    public ContentLocks CreateLocks() => new(this.Releases.Where(release => !release.IsReleased));
+
+    /// <summary>
+    /// Finds the release with the id.
+    /// </summary>
+    /// <param name="id">The id.</param>
+    /// <returns>The release; <c>null</c>, if there is none with this id.</returns>
+    public ContentRelease? FindRelease(string id) => this.Releases.FirstOrDefault(release => release.Id == id);
+
+    /// <inheritdoc />
+    void IJsonOnDeserialized.OnDeserialized()
+    {
+        if (this.LegacyStage is not { } stage)
+        {
+            return;
+        }
+
+        if (this.Releases.Count == 0)
+        {
+            // The release time of the content of the reached stage isn't known.
+            this.Releases = DefaultReleases.Create();
+            this.Releases.Where(release => release.Era <= stage).ToList().ForEach(release => release.ReleasedAt = DateTime.UnixEpoch);
+        }
+
+        this.LegacyStage = null;
+    }
 }

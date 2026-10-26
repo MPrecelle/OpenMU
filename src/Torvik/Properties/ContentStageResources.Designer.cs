@@ -61,7 +61,7 @@ namespace MUnique.OpenMU.Torvik.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Logs the items which killed monsters drop and the drops blocked by the content stages, to verify the locks in the game..
+        ///   Looks up a localized string similar to Logs the items which killed monsters drop and the drops blocked by the content releases, to verify the locks in the game..
         /// </summary>
         public static string DropLogPlugIn_Description {
             get {
@@ -79,7 +79,7 @@ namespace MUnique.OpenMU.Torvik.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to This map isn&apos;t available yet. It arrives with a coming season..
+        ///   Looks up a localized string similar to This map isn&apos;t available yet. It arrives with a coming release..
         /// </summary>
         public static string MapLocked {
             get {
@@ -88,7 +88,7 @@ namespace MUnique.OpenMU.Torvik.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Locks the maps and item drops of the seasons which aren&apos;t unlocked yet. The stage is changed through the API (api/content-stage)..
+        ///   Looks up a localized string similar to Locks the content of the releases which aren&apos;t released yet: maps, item drops, NPCs, classes, quests, mini games and features. The releases are changed through the API (api/releases)..
         /// </summary>
         public static string PlugIn_Description {
             get {
@@ -97,7 +97,7 @@ namespace MUnique.OpenMU.Torvik.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Torvik: content stages.
+        ///   Looks up a localized string similar to Torvik: content releases.
         /// </summary>
         public static string PlugIn_Name {
             get {

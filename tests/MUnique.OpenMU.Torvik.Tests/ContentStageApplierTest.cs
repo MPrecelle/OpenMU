@@ -41,18 +41,17 @@ public class ContentStageApplierTest
     }
 
     /// <summary>
-    /// Tests that the classic stage locks the content of the later stages, and leaves the classic content alone.
+    /// Tests that the locked default releases lock the content after season 3 episode 1, and leave the classic content alone.
     /// </summary>
     [Test]
-    public void ClassicLocksLaterContent()
+    public void LockedReleasesLockTheirContent()
     {
         var kris = this.Item(0, 0);
         var krisDrops = kris.DropsFromMonsters;
 
-        var result = this._applier.Apply(this._configuration, ContentStage.Classic);
+        this._applier.Apply(this._configuration, ContentStageTestData.CreateConfiguration());
 
-        Assert.That(result.CurrentStage, Is.EqualTo(ContentStage.Classic));
-        Assert.That(ContentStageApplier.GetConfiguration(this._configuration).CurrentStage, Is.EqualTo(ContentStage.Classic));
+        Assert.That(ContentStageApplier.GetConfiguration(this._configuration).Releases.Select(r => r.IsReleased), Is.All.False);
         Assert.That(this.Item(0, 26).DropsFromMonsters, Is.False, "Flamberge (socket)");
         Assert.That(this.Item(0, 26).MaximumSockets, Is.Zero, "Flamberge (socket)");
         Assert.That(this.Item(12, 60).DropsFromMonsters, Is.False, "Seed (Fire)");
@@ -73,15 +72,15 @@ public class ContentStageApplierTest
     }
 
     /// <summary>
-    /// Tests that a later stage unlocks the content up to it, and keeps the content after it locked.
+    /// Tests that released releases unlock their content, and that the content of the others stays locked.
     /// </summary>
     [Test]
-    public void LaterStageUnlocksItsContent()
+    public void ReleasedReleasesUnlockTheirContent()
     {
         var originalSockets = this.Item(0, 26).MaximumSockets;
-        this._applier.Apply(this._configuration, ContentStage.Classic);
+        this._applier.Apply(this._configuration, ContentStageTestData.CreateConfiguration());
 
-        this._applier.Apply(this._configuration, ContentStage.Season4);
+        this.Release("tercera-evolucion", "sistema-de-sockets", "raklion");
 
         Assert.That(this.Item(0, 26).MaximumSockets, Is.EqualTo(originalSockets), "Flamberge (socket)");
         Assert.That(this.PlugIn(typeof(RaklionPlugIn).GUID).IsActive, Is.True);
@@ -93,33 +92,34 @@ public class ContentStageApplierTest
     }
 
     /// <summary>
-    /// Tests that applying season 6 after other stages restores all original values and removes the snapshot.
+    /// Tests that releasing everything after other changes restores all original values and removes the snapshot.
     /// </summary>
     [Test]
-    public void SeasonSixRestoresOriginalValues()
+    public void ReleasingEverythingRestoresOriginalValues()
     {
         var original = ContentStageTestData.DescribeLockableValues(this._configuration);
 
-        this._applier.Apply(this._configuration, ContentStage.Classic);
-        this._applier.Apply(this._configuration, ContentStage.Season5);
-        this._applier.Apply(this._configuration, ContentStage.Season3);
-        var result = this._applier.Apply(this._configuration, ContentStage.Season6);
+        var allIds = DefaultReleases.Create().Select(r => r.Id).ToArray();
+        this._applier.Apply(this._configuration, ContentStageTestData.CreateConfiguration());
+        this.Release(allIds[3..12]);
+        this.Release(allIds[..3]);
+        this.Release(allIds[12..]);
 
         Assert.That(ContentStageTestData.DescribeLockableValues(this._configuration), Is.EqualTo(original));
-        Assert.That(result.Snapshot, Is.Null);
+        Assert.That(ContentStageApplier.GetConfiguration(this._configuration).Snapshot, Is.Null);
     }
 
     /// <summary>
-    /// Tests that applying the same stage again doesn't change anything.
+    /// Tests that applying the same releases again doesn't change anything.
     /// </summary>
     [Test]
     public void ApplyingTwiceChangesNothing()
     {
-        this._applier.Apply(this._configuration, ContentStage.Classic);
+        this._applier.Apply(this._configuration, ContentStageTestData.CreateConfiguration());
         var once = ContentStageTestData.DescribeLockableValues(this._configuration);
         var snapshotOnce = this.PlugIn(ContentStagesPlugIn.TypeId).CustomConfiguration;
 
-        this._applier.Apply(this._configuration, ContentStage.Classic);
+        this._applier.Apply(this._configuration, ContentStageApplier.GetConfiguration(this._configuration));
 
         Assert.That(ContentStageTestData.DescribeLockableValues(this._configuration), Is.EqualTo(once));
         Assert.That(this.PlugIn(ContentStagesPlugIn.TypeId).CustomConfiguration, Is.EqualTo(snapshotOnce));
@@ -133,10 +133,21 @@ public class ContentStageApplierTest
     {
         this._configuration.PlugInConfigurations.Remove(this.PlugIn(ContentStagesPlugIn.TypeId));
 
-        this._applier.Apply(this._configuration, ContentStage.Classic);
+        this._applier.Apply(this._configuration, ContentStageTestData.CreateConfiguration());
 
         Assert.That(this.PlugIn(ContentStagesPlugIn.TypeId).IsActive, Is.True);
-        Assert.That(ContentStageApplier.GetConfiguration(this._configuration).CurrentStage, Is.EqualTo(ContentStage.Classic));
+        Assert.That(ContentStageApplier.GetConfiguration(this._configuration).Releases, Has.Count.EqualTo(DefaultReleases.Create().Count));
+    }
+
+    private void Release(params string[] ids)
+    {
+        var configuration = ContentStageApplier.GetConfiguration(this._configuration);
+        foreach (var id in ids)
+        {
+            configuration.FindRelease(id)!.ReleasedAt = DateTime.UtcNow;
+        }
+
+        this._applier.Apply(this._configuration, configuration);
     }
 
     private ItemDefinition Item(byte group, short number) => this._configuration.Items.Single(i => i.Group == group && i.Number == number);

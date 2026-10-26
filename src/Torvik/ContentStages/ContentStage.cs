@@ -5,8 +5,12 @@
 namespace MUnique.OpenMU.Torvik.ContentStages;
 
 /// <summary>
-/// The stages in which the content of the game gets unlocked, in chronological order.
+/// The eras of the original game, in chronological order. They group the <see cref="ContentRelease"/>s.
 /// </summary>
+/// <remarks>
+/// Before the releases, the server was brought to one of these stages as a whole.
+/// The values are persisted, so they can't be renumbered.
+/// </remarks>
 public enum ContentStage
 {
     /// <summary>

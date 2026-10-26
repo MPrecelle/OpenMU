@@ -13,18 +13,18 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="PlugIn_Name" xml:space="preserve">
-    <value>Torvik: content stages</value>
+    <value>Torvik: content releases</value>
   </data>
   <data name="PlugIn_Description" xml:space="preserve">
-    <value>Locks the maps and item drops of the seasons which aren't unlocked yet. The stage is changed through the API (api/content-stage).</value>
+    <value>Locks the content of the releases which aren't released yet: maps, item drops, NPCs, classes, quests, mini games and features. The releases are changed through the API (api/releases).</value>
   </data>
   <data name="MapLocked" xml:space="preserve">
-    <value>This map isn't available yet. It arrives with a coming season.</value>
+    <value>This map isn't available yet. It arrives with a coming release.</value>
   </data>
   <data name="DropLogPlugIn_Name" xml:space="preserve">
     <value>Torvik: drop log</value>
   </data>
   <data name="DropLogPlugIn_Description" xml:space="preserve">
-    <value>Logs the items which killed monsters drop and the drops blocked by the content stages, to verify the locks in the game.</value>
+    <value>Logs the items which killed monsters drop and the drops blocked by the content releases, to verify the locks in the game.</value>
   </data>
 </root>
