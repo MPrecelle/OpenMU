@@ -27,4 +27,10 @@
   <data name="DropLogPlugIn_Description" xml:space="preserve">
     <value>Logs the items which killed monsters drop and the drops blocked by the content releases, to verify the locks in the game.</value>
   </data>
+  <data name="ReleaseCountdown" xml:space="preserve">
+    <value>Release of {0} in {1} minutes. The server restarts then.</value>
+  </data>
+  <data name="ReleaseCountdownOneMinute" xml:space="preserve">
+    <value>Release of {0} in 1 minute. The server restarts then.</value>
+  </data>
 </root>

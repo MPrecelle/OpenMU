@@ -26,6 +26,17 @@ public class ContentStageConfiguration : IJsonOnDeserialized
     public ContentStageSnapshot? Snapshot { get; set; }
 
     /// <summary>
+    /// Gets or sets the minutes before a release at which the players are warned that it comes and that the server restarts.
+    /// </summary>
+    public List<int> CountdownMinutes { get; set; } = [60, 15, 5, 1];
+
+    /// <summary>
+    /// Gets or sets the minutes of the countdown of a release which is released now, through the API.
+    /// After a start of the server, releases which are due wait for this countdown, too.
+    /// </summary>
+    public int ReleaseNowMinutes { get; set; } = 5;
+
+    /// <summary>
     /// Gets or sets the stage of a configuration which was stored before the releases existed.
     /// It's only read, and replaced by the <see cref="DefaultReleases"/> when the configuration is loaded.
     /// </summary>

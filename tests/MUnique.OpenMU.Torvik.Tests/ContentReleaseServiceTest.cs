@@ -102,6 +102,20 @@ public class ContentReleaseServiceTest
     }
 
     /// <summary>
+    /// Tests that releasing after the countdown schedules the release at its end, and keeps the content locked until then.
+    /// </summary>
+    [Test]
+    public void ReleaseAfterCountdownSchedules()
+    {
+        Assert.That(this._service.ReleaseAfterCountdown("gens", Now), Is.Empty);
+
+        var gens = this._service.Configuration.FindRelease("gens")!;
+        Assert.That(gens.ScheduledAt, Is.EqualTo(Now.AddMinutes(this._service.Configuration.ReleaseNowMinutes)));
+        Assert.That(gens.IsReleased, Is.False);
+        Assert.That(this.Spawns(543).Select(a => a.Quantity), Is.All.Zero, "Gens Duprian");
+    }
+
+    /// <summary>
     /// Tests that a release can't be scheduled in the past.
     /// </summary>
     [Test]

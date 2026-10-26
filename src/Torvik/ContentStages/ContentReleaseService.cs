@@ -6,6 +6,7 @@ namespace MUnique.OpenMU.Torvik.ContentStages;
 
 using System.Text.Json;
 using MUnique.OpenMU.Persistence;
+using Nito.AsyncEx;
 
 /// <summary>
 /// Changes the <see cref="ContentStageConfiguration.Releases"/> of a game configuration: creates, edits, schedules and releases them.
@@ -30,6 +31,12 @@ public sealed class ContentReleaseService
         this._gameConfiguration = gameConfiguration;
         this.Configuration = ContentStageApplier.GetConfiguration(gameConfiguration);
     }
+
+    /// <summary>
+    /// Gets the lock which the changes of the releases hold from loading the game configuration until saving it,
+    /// so that the API and the <see cref="ContentReleaseScheduler"/> don't overwrite each other's changes.
+    /// </summary>
+    public static AsyncLock ChangeLock { get; } = new();
 
     /// <summary>
     /// Gets the current configuration with the releases.
@@ -126,6 +133,15 @@ public sealed class ContentReleaseService
             return null;
         });
     }
+
+    /// <summary>
+    /// Schedules a release which isn't released at the end of the countdown of <see cref="ContentStageConfiguration.ReleaseNowMinutes"/>.
+    /// </summary>
+    /// <param name="id">The id of the release.</param>
+    /// <param name="now">The current point in time (UTC).</param>
+    /// <returns>The errors; empty, if the release was scheduled.</returns>
+    public IReadOnlyList<ReleaseValidationError> ReleaseAfterCountdown(string id, DateTime now)
+        => this.Schedule(id, now.AddMinutes(Math.Max(this.Configuration.ReleaseNowMinutes, 1)), now);
 
     /// <summary>
     /// Releases the content of a release.

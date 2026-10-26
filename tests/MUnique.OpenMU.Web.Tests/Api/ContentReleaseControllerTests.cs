@@ -80,7 +80,7 @@ public class ContentReleaseControllerTests
     }
 
     /// <summary>
-    /// A release gets scheduled with an offset, which is stored in UTC, and then released.
+    /// A release gets scheduled with an offset, which is stored in UTC. Releasing it now schedules it at the end of a short countdown.
     /// </summary>
     /// <returns>The task.</returns>
     [Test]
@@ -95,8 +95,8 @@ public class ContentReleaseControllerTests
         Assert.That(scheduled.Status, Is.EqualTo(ReleaseStatus.Scheduled));
         Assert.That(scheduled.ScheduledAt, Is.EqualTo(scheduledAt.UtcDateTime));
         Assert.That(scheduled.ScheduledAt!.Value.Hour, Is.EqualTo(23));
-        Assert.That(released.Status, Is.EqualTo(ReleaseStatus.Released));
-        Assert.That(released.ScheduledAt, Is.Null);
+        Assert.That(released.Status, Is.EqualTo(ReleaseStatus.Scheduled));
+        Assert.That(released.ScheduledAt, Is.EqualTo(DateTime.UtcNow.AddMinutes(new ContentStageConfiguration().ReleaseNowMinutes)).Within(TimeSpan.FromSeconds(30)));
     }
 
     /// <summary>

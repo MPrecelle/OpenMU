@@ -88,6 +88,24 @@ namespace MUnique.OpenMU.Torvik.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Release of {0} in {1} minutes. The server restarts then..
+        /// </summary>
+        public static string ReleaseCountdown {
+            get {
+                return ResourceManager.GetString("ReleaseCountdown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Release of {0} in 1 minute. The server restarts then..
+        /// </summary>
+        public static string ReleaseCountdownOneMinute {
+            get {
+                return ResourceManager.GetString("ReleaseCountdownOneMinute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Locks the content of the releases which aren&apos;t released yet: maps, item drops, NPCs, classes, quests, mini games and features. The releases are changed through the API (api/releases)..
         /// </summary>
         public static string PlugIn_Description {

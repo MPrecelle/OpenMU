@@ -18,7 +18,8 @@ using MUnique.OpenMU.Web.AdminPanel.Auth;
 /// </summary>
 /// <remarks>
 /// A change which isn't valid returns <c>400</c> with the <see cref="ReleaseValidationError"/>s and changes nothing.
-/// The game servers apply the changed data after "Reload configuration and restart" in the admin panel.
+/// The <see cref="ContentReleaseScheduler"/> releases the scheduled releases with a countdown for the players, and restarts the game servers.
+/// Other changes are applied by the game servers after "Reload configuration and restart" in the admin panel.
 /// </remarks>
 [ApiController]
 [Route("api/releases")]
@@ -122,14 +123,15 @@ public class ContentReleaseController : ControllerBase
         => this.ChangeAsync(id, true, service => service.Schedule(id, null, DateTime.UtcNow), "unscheduled", this.Ok, cancellationToken);
 
     /// <summary>
-    /// Releases the content of a release now.
+    /// Releases the content of a release now: it's scheduled at the end of a short countdown for the players
+    /// (<see cref="ContentStageConfiguration.ReleaseNowMinutes"/>), and then released by the <see cref="ContentReleaseScheduler"/>.
     /// </summary>
     /// <param name="id">The id of the release.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The released release; <c>400</c> with the errors, e.g. if a required release isn't released; <c>404</c>, if it doesn't exist.</returns>
+    /// <returns>The scheduled release; <c>400</c> with the errors, e.g. if a required release isn't released or scheduled before; <c>404</c>, if it doesn't exist.</returns>
     [HttpPost("{id}/release")]
     public Task<ActionResult> ReleaseAsync(string id, CancellationToken cancellationToken)
-        => this.ChangeAsync(id, true, service => service.Release(id, DateTime.UtcNow), "released", this.Ok, cancellationToken);
+        => this.ChangeAsync(id, true, service => service.ReleaseAfterCountdown(id, DateTime.UtcNow), "scheduled to be released now", this.Ok, cancellationToken);
 
     /// <summary>
     /// Locks the content of a released release again. The players may already have its items, so it needs the administrator role.
@@ -150,6 +152,7 @@ public class ContentReleaseController : ControllerBase
     [HttpPost("defaults")]
     public async Task<ActionResult<IEnumerable<ReleaseView>>> AddMissingDefaultsAsync(CancellationToken cancellationToken)
     {
+        using var changeLock = await ContentReleaseService.ChangeLock.LockAsync(cancellationToken).ConfigureAwait(false);
         using var context = this._persistenceContextProvider.CreateNewContext();
         var service = new ContentReleaseService(context, await GetGameConfigurationAsync(context, cancellationToken).ConfigureAwait(false));
         var errors = service.AddMissingDefaults();
@@ -174,6 +177,7 @@ public class ContentReleaseController : ControllerBase
         Func<ReleaseView?, ActionResult> createResult,
         CancellationToken cancellationToken)
     {
+        using var changeLock = await ContentReleaseService.ChangeLock.LockAsync(cancellationToken).ConfigureAwait(false);
         using var context = this._persistenceContextProvider.CreateNewContext();
         var service = new ContentReleaseService(context, await GetGameConfigurationAsync(context, cancellationToken).ConfigureAwait(false));
         if (mustExist && service.Configuration.FindRelease(id) is null)
