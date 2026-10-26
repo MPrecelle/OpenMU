@@ -5,14 +5,21 @@
 namespace MUnique.OpenMU.Torvik.Tests;
 
 using System.ComponentModel;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using MUnique.OpenMU.DataModel.Configuration;
 using MUnique.OpenMU.DataModel.Configuration.Items;
 using MUnique.OpenMU.DataModel.Entities;
+using MUnique.OpenMU.GameLogic;
+using MUnique.OpenMU.GameLogic.NPC;
 using MUnique.OpenMU.GameLogic.Views;
 using MUnique.OpenMU.Interfaces;
+using MUnique.OpenMU.Persistence.InMemory;
+using MUnique.OpenMU.PlugIns;
 using MUnique.OpenMU.Tests;
 using MUnique.OpenMU.Torvik.ContentStages;
+using BasicMonsterDefinition = MUnique.OpenMU.Persistence.BasicModel.MonsterDefinition;
 
 /// <summary>
 /// Tests the runtime locks of the <see cref="ContentStagesPlugIn"/>.
@@ -30,13 +37,14 @@ public class ContentStagesPlugInTest
     [TestCase((byte)12, (short)36, ExpectedResult = true)]
     [TestCase((byte)12, (short)100, ExpectedResult = true)]
     [TestCase((byte)14, (short)169, ExpectedResult = true)]
-    public bool LockedItemsDontDrop(byte group, short number)
+    public async Task<bool> LockedItemsDontDropAsync(byte group, short number)
     {
+        var (killer, monster) = await CreateKillerAndMonsterAsync().ConfigureAwait(false);
         var plugIn = new ContentStagesPlugIn { Configuration = new ContentStageConfiguration { CurrentStage = ContentStage.Classic } };
         var item = new Item { Definition = new ItemDefinition { Group = group, Number = number } };
         var eventArgs = new CancelEventArgs();
 
-        plugIn.ItemDropping(null!, null!, item, eventArgs);
+        plugIn.ItemDropping(monster, killer, item, eventArgs);
 
         return eventArgs.Cancel;
     }
@@ -44,14 +52,16 @@ public class ContentStagesPlugInTest
     /// <summary>
     /// Tests that nothing is locked without a configuration.
     /// </summary>
+    /// <returns>The task.</returns>
     [Test]
-    public void NothingIsLockedWithoutConfiguration()
+    public async Task NothingIsLockedWithoutConfigurationAsync()
     {
+        var (killer, monster) = await CreateKillerAndMonsterAsync().ConfigureAwait(false);
         var plugIn = new ContentStagesPlugIn();
         var item = new Item { Definition = new ItemDefinition { Group = 14, Number = 169 } };
         var eventArgs = new CancelEventArgs();
 
-        plugIn.ItemDropping(null!, null!, item, eventArgs);
+        plugIn.ItemDropping(monster, killer, item, eventArgs);
 
         Assert.That(eventArgs.Cancel, Is.False);
     }
@@ -89,5 +99,27 @@ public class ContentStagesPlugInTest
         await plugIn.WarpGateEnteringAsync(player, new ExitGate { Map = new GameMapDefinition { Number = mapNumber } }, eventArgs).ConfigureAwait(false);
 
         Assert.That(eventArgs.Cancel, Is.False);
+    }
+
+    /// <summary>
+    /// Creates a player and a monster which it killed, on Lorencia.
+    /// </summary>
+    /// <param name="loggerFactory">The logger factory of the game context; <c>null</c> for none.</param>
+    /// <returns>The player and the monster.</returns>
+    internal static async ValueTask<(Player Killer, Monster Monster)> CreateKillerAndMonsterAsync(ILoggerFactory? loggerFactory = null)
+    {
+        loggerFactory ??= new NullLoggerFactory();
+        var gameConfiguration = PlayerTestHelper.CreateGameConfiguration();
+        var mapInitializer = new MapInitializer(gameConfiguration, new NullLogger<MapInitializer>(), NullDropGenerator.Instance, null);
+        var gameContext = new GameContext(gameConfiguration, new InMemoryPersistenceContextProvider(), mapInitializer, loggerFactory, new PlugInManager(null, loggerFactory, null, null), NullDropGenerator.Instance, new ConfigurationChangeMediator());
+        mapInitializer.PlugInManager = gameContext.PlugInManager;
+        mapInitializer.PathFinderPool = gameContext.PathFinderPool;
+
+        var killer = await PlayerTestHelper.CreatePlayerAsync(gameContext).ConfigureAwait(false);
+        var map = await gameContext.GetMapAsync(0).ConfigureAwait(false);
+        var definition = new BasicMonsterDefinition { Number = 7, Designation = "Giant", ObjectKind = NpcObjectKind.Monster };
+        var spawnArea = new MonsterSpawnArea { MonsterDefinition = definition, GameMap = map!.Definition, X1 = 140, Y1 = 140, X2 = 140, Y2 = 140, Quantity = 1 };
+        var monster = new Monster(spawnArea, definition, map, NullDropGenerator.Instance, new Mock<INpcIntelligence>().Object, gameContext.PlugInManager, gameContext.PathFinderPool);
+        return (killer, monster);
     }
 }

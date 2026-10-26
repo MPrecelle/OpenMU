@@ -6,6 +6,7 @@ namespace MUnique.OpenMU.Torvik.ContentStages;
 
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.Logging;
 using MUnique.OpenMU.DataModel.Entities;
 using MUnique.OpenMU.GameLogic;
 using MUnique.OpenMU.GameLogic.NPC;
@@ -53,6 +54,14 @@ public sealed class ContentStagesPlugIn : IFeaturePlugIn, IWarpGateEnteringPlugI
         if (item.Definition is { } definition && ContentCatalog.GetStage(definition) > this.CurrentStage)
         {
             eventArgs.Cancel = true;
+            killer.Logger.LogInformation(
+                DropLogPlugIn.LogPrefix + " blocked by the content stage {Stage}: {Item} ({Group}:{Number}) from {Monster}, killed by {Player}",
+                this.CurrentStage,
+                definition.GetNameForLevel(item.Level),
+                definition.Group,
+                definition.Number,
+                monster.Definition.Designation.ValueInNeutralLanguage,
+                killer.Name);
         }
     }
 
