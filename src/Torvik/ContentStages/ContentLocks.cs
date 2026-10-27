@@ -5,6 +5,8 @@
 namespace MUnique.OpenMU.Torvik.ContentStages;
 
 using MUnique.OpenMU.DataModel.Configuration.Quests;
+using MUnique.OpenMU.GameLogic.CashShop;
+using MUnique.OpenMU.GameLogic.Gens;
 
 /// <summary>
 /// The content which is locked because its <see cref="ContentRelease"/> isn't released yet.
@@ -43,6 +45,14 @@ public sealed class ContentLocks
     /// Gets the locks of a configuration in which everything is released.
     /// </summary>
     public static ContentLocks None { get; } = new([]);
+
+    /// <summary>
+    /// Gets the locked content which the game client hides.
+    /// </summary>
+    public LockedClientContent ClientContent => new(
+        this.GetPlugInRelease(typeof(GensFeaturePlugIn).GUID) is not null,
+        this.GetPlugInRelease(typeof(CashShopFeaturePlugIn).GUID) is not null,
+        this._maps.Keys.Order().ToList());
 
     /// <summary>
     /// Gets the release which locks the map.

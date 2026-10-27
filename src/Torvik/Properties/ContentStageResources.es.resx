@@ -33,4 +33,10 @@
   <data name="ReleaseCountdownOneMinute" xml:space="preserve">
     <value>Lanzamiento de {0} en 1 minuto. Ahí se reinicia el servidor.</value>
   </data>
+  <data name="ShowLockedContentPlugIn_Name" xml:space="preserve">
+    <value>Torvik: contenido bloqueado para el cliente</value>
+  </data>
+  <data name="ShowLockedContentPlugIn_Description" xml:space="preserve">
+    <value>Le avisa al cliente qué contenido está bloqueado (gens, cash shop y mapas) para que esconda su interfaz. Es un paquete propio: los clientes que no lo conocen lo ignoran.</value>
+  </data>
 </root>

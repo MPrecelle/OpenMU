@@ -8653,4 +8653,26 @@ public class PacketStructureTests
         Assert.That(8 + 2, Is.LessThanOrEqualTo(expectedLength), 
             "Field 'YearId' exceeds packet boundary");
     }
+
+    /// <summary>
+    /// Tests the packet size calculation for LockedContent.
+    /// </summary>
+    [Test]
+    public void LockedContent_PacketSizeValidation()
+    {
+        // Basic packet validation
+        // Validate header type and field boundaries
+        
+        // Field 'IsGensLocked' starts at index 4 with size 1
+        Assert.That(4, Is.GreaterThanOrEqualTo(0), 
+            "Field 'IsGensLocked' has invalid negative index");
+        
+        // Field 'IsCashShopLocked' starts at index 4 with size 1
+        Assert.That(4, Is.GreaterThanOrEqualTo(0), 
+            "Field 'IsCashShopLocked' has invalid negative index");
+        
+        // Field 'LockedMapCount' starts at index 5 with size 1
+        Assert.That(5, Is.GreaterThanOrEqualTo(0), 
+            "Field 'LockedMapCount' has invalid negative index");
+    }
 }

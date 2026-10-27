@@ -15109,6 +15109,53 @@
         </Field>
       </Fields>
     </Packet>
+    <Packet>
+      <HeaderType>C2Header</HeaderType>
+      <Code>FA</Code>
+      <Name>LockedContent</Name>
+      <Direction>ServerToClient</Direction>
+      <SentWhen>The player entered the game world. Not part of the original protocol: it's a custom packet of Torvik MU, sent when content of the server is locked until a future release.</SentWhen>
+      <CausedReaction>The client hides the user interface of the locked features, e.g. the warp list entries of the locked maps. A client which doesn't receive this packet shows everything.</CausedReaction>
+      <Fields>
+        <Field>
+          <Index>4</Index>
+          <Type>Boolean</Type>
+          <Name>IsGensLocked</Name>
+        </Field>
+        <Field>
+          <Index>4</Index>
+          <LeftShifted>1</LeftShifted>
+          <Type>Boolean</Type>
+          <Name>IsCashShopLocked</Name>
+        </Field>
+        <Field>
+          <Index>5</Index>
+          <Type>Byte</Type>
+          <Name>LockedMapCount</Name>
+        </Field>
+        <Field>
+          <Index>6</Index>
+          <Type>Structure[]</Type>
+          <TypeName>LockedMap</TypeName>
+          <Name>LockedMaps</Name>
+          <ItemCountField>LockedMapCount</ItemCountField>
+        </Field>
+      </Fields>
+      <Structures>
+        <Structure>
+          <Name>LockedMap</Name>
+          <Description>A map which is locked until a future release.</Description>
+          <Length>2</Length>
+          <Fields>
+            <Field>
+              <Index>0</Index>
+              <Type>ShortLittleEndian</Type>
+              <Name>MapNumber</Name>
+            </Field>
+          </Fields>
+        </Structure>
+      </Structures>
+    </Packet>
   </Packets>
   <Enums>
     <Enum>

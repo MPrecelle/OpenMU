@@ -39004,3 +39004,139 @@ public readonly ref struct CashShopBannerVersionRef
     /// <returns>The packet as byte span.</returns>
     public static implicit operator Span<byte>(CashShopBannerVersionRef packet) => packet._data; 
 }
+
+
+/// <summary>
+/// Is sent by the server when: The player entered the game world. Not part of the original protocol: it's a custom packet of Torvik MU, sent when content of the server is locked until a future release.
+/// Causes reaction on client side: The client hides the user interface of the locked features, e.g. the warp list entries of the locked maps. A client which doesn't receive this packet shows everything.
+/// </summary>
+public readonly ref struct LockedContentRef
+{
+    private readonly Span<byte> _data;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LockedContentRef"/> struct.
+    /// </summary>
+    /// <param name="data">The underlying data.</param>
+    public LockedContentRef(Span<byte> data)
+        : this(data, true)
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LockedContentRef"/> struct.
+    /// </summary>
+    /// <param name="data">The underlying data.</param>
+    /// <param name="initialize">If set to <c>true</c>, the header data is automatically initialized and written to the underlying span.</param>
+    private LockedContentRef(Span<byte> data, bool initialize)
+    {
+        this._data = data;
+        if (initialize)
+        {
+            var header = this.Header;
+            header.Type = HeaderType;
+            header.Code = Code;
+            header.Length = (ushort)data.Length;
+        }
+    }
+
+    /// <summary>
+    /// Gets the header type of this data packet.
+    /// </summary>
+    public static byte HeaderType => 0xC2;
+
+    /// <summary>
+    /// Gets the operation code of this data packet.
+    /// </summary>
+    public static byte Code => 0xFA;
+
+    /// <summary>
+    /// Gets the header of this packet.
+    /// </summary>
+    public C2HeaderRef Header => new (this._data);
+
+    /// <summary>
+    /// Gets or sets the is gens locked.
+    /// </summary>
+    public bool IsGensLocked
+    {
+        get => this._data[4..].GetBoolean();
+        set => this._data[4..].SetBoolean(value);
+    }
+
+    /// <summary>
+    /// Gets or sets the is cash shop locked.
+    /// </summary>
+    public bool IsCashShopLocked
+    {
+        get => this._data[4..].GetBoolean(1);
+        set => this._data[4..].SetBoolean(value, 1);
+    }
+
+    /// <summary>
+    /// Gets or sets the locked map count.
+    /// </summary>
+    public byte LockedMapCount
+    {
+        get => this._data[5];
+        set => this._data[5] = value;
+    }
+
+    /// <summary>
+    /// Gets the <see cref="LockedMapRef"/> of the specified index.
+    /// </summary>
+        public LockedMapRef this[int index] => new (this._data[(6 + index * LockedMapRef.Length)..]);
+
+    /// <summary>
+    /// Performs an implicit conversion from a Span of bytes to a <see cref="LockedContent"/>.
+    /// </summary>
+    /// <param name="packet">The packet as span.</param>
+    /// <returns>The packet as struct.</returns>
+    public static implicit operator LockedContentRef(Span<byte> packet) => new (packet, false);
+
+    /// <summary>
+    /// Performs an implicit conversion from <see cref="LockedContent"/> to a Span of bytes.
+    /// </summary>
+    /// <param name="packet">The packet as struct.</param>
+    /// <returns>The packet as byte span.</returns>
+    public static implicit operator Span<byte>(LockedContentRef packet) => packet._data; 
+
+    /// <summary>
+    /// Calculates the size of the packet for the specified count of <see cref="LockedMapRef"/>.
+    /// </summary>
+    /// <param name="lockedMapsCount">The count of <see cref="LockedMapRef"/> from which the size will be calculated.</param>
+        
+    public static int GetRequiredSize(int lockedMapsCount) => lockedMapsCount * LockedMapRef.Length + 6;
+
+
+/// <summary>
+/// A map which is locked until a future release..
+/// </summary>
+public readonly ref struct LockedMapRef
+{
+    private readonly Span<byte> _data;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="LockedMapRef"/> struct.
+    /// </summary>
+    /// <param name="data">The underlying data.</param>
+    public LockedMapRef(Span<byte> data)
+    {
+        this._data = data;
+    }
+
+    /// <summary>
+    /// Gets the initial length of this data packet. When the size is dynamic, this value may be bigger than actually needed.
+    /// </summary>
+    public static int Length => 2;
+
+    /// <summary>
+    /// Gets or sets the map number.
+    /// </summary>
+    public ushort MapNumber
+    {
+        get => ReadUInt16LittleEndian(this._data);
+        set => WriteUInt16LittleEndian(this._data, value);
+    }
+}
+}

@@ -331,3 +331,4 @@
   * [C1 F8 07 - GensInfo (by server)](C1-F8-07-GensInfo_by-server.md)
   * [C1 F8 0A - GensRewardResponse (by server)](C1-F8-0A-GensRewardResponse_by-server.md)
   * [C3 F9 01 - OpenNpcDialog (by server)](C3-F9-01-OpenNpcDialog_by-server.md)
+  * [C2 FA - LockedContent (by server)](C2-FA-LockedContent_by-server.md)
