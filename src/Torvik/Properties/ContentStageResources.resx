@@ -33,4 +33,10 @@
   <data name="ReleaseCountdownOneMinute" xml:space="preserve">
     <value>Release of {0} in 1 minute. The server restarts then.</value>
   </data>
+  <data name="ShowLockedContentPlugIn_Name" xml:space="preserve">
+    <value>Torvik: locked content for the client</value>
+  </data>
+  <data name="ShowLockedContentPlugIn_Description" xml:space="preserve">
+    <value>Tells the game client which content is locked (gens, cash shop and maps), so it hides its user interface. It is a custom packet: clients which don't know it ignore it.</value>
+  </data>
 </root>

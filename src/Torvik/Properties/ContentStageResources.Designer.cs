@@ -122,5 +122,23 @@ namespace MUnique.OpenMU.Torvik.Properties {
                 return ResourceManager.GetString("PlugIn_Name", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tells the game client which content is locked (gens, cash shop and maps), so it hides its user interface. It is a custom packet: clients which don&apos;t know it ignore it..
+        /// </summary>
+        public static string ShowLockedContentPlugIn_Description {
+            get {
+                return ResourceManager.GetString("ShowLockedContentPlugIn_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Torvik: locked content for the client.
+        /// </summary>
+        public static string ShowLockedContentPlugIn_Name {
+            get {
+                return ResourceManager.GetString("ShowLockedContentPlugIn_Name", resourceCulture);
+            }
+        }
     }
 }
